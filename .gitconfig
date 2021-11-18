@@ -1,0 +1,30 @@
+[user]
+	email = public@cianjohnston.ie
+	name = Cian Johnston
+[url "git@github.com:"]
+	insteadOf = https://github.com/
+
+[aliases]
+	add = "add -p" #ALWAYS
+	as = "! git rebase -i --autosquash master"
+	diff-file-last-commit = "!f() { \
+            project_root_dir=$(git rev-parse --show-toplevel); \
+            echo finding full file path of $1 in $project_root_dir; \
+            filepath=$(find $project_root_dir -type f -name $1); \
+            echo full file path $filepath; \
+            last_modified_commit_hash=$(git rev-list -1 HEAD $filepath); \
+            echo last commit file modified $last_modified_commit_hash; \
+            git difftool $last_modified_commit_hash^ $filepath; \
+       }; f"
+        f = "! git c --fixup $(git log --pretty='%H' -1 --invert-grep --grep 'fixup! ')"
+	ls = "!git for-each-ref --sort='-authordate' --format='%(authordate)%09%(objectname:short)%09%(refname)' refs/heads | sed -e 's-refs/heads/--'"
+	l = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=short
+	pu = "pull --all --rebase"
+	releasenotes = "! set -u; f() { git log  --no-merges --pretty=format:\"- %h %s\" $1; }; f"
+	subup = "submodule update --recursive"
+	sup = "submodule update --recursive"
+
+[rerere]
+        enabled = true
+[pull]
+	ff = only
