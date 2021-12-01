@@ -18,7 +18,6 @@ sudo apt-get install -qqy -o Dpkg::Options::="--force-overwrite" \
   fd-find \
   fzf \
   jq \
-  kubectl \
   shellcheck \
   awscli
 
