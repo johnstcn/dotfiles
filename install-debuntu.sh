@@ -34,34 +34,6 @@ if ! command -v powerline-go; then
   wget -c 'https://github.com/justjanne/powerline-go/releases/download/v1.21.0/powerline-go-linux-amd64' -O ~/bin/powerline-go && chmod +x ~/bin/powerline-go
 fi
 
-if ! command -v kubectx; then
-  echo "INFO: Installing kubectx"
-  wget -c 'https://github.com/ahmetb/kubectx/releases/download/v0.9.4/kubectx' -O ~/bin/kubectx && chmod +x ~/bin/kubectx
-fi
-
-if ! command -v kubens; then
-  echo "INFO: Installing kubens"
-  wget -c 'https://github.com/ahmetb/kubectx/releases/download/v0.9.4/kubens' -O ~/bin/kubens && chmod +x ~/bin/kubens
-fi
-
-# install krew
-if [ ! -x "${HOME}/.krew/bin/kubectl-krew" ]; then
-  cd "$(mktemp -d)" &&
-  OS="$(uname | tr '[:upper:]' '[:lower:]')" &&
-  ARCH="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/\(arm\)\(64\)\?.*/\1\2/' -e 's/aarch64$/arm64/')" &&
-  curl -fsSLO "https://github.com/kubernetes-sigs/krew/releases/latest/download/krew.tar.gz" &&
-  tar zxvf krew.tar.gz &&
-  KREW=./krew-"${OS}_${ARCH}" &&
-  "$KREW" install krew
-fi
-
-# install eksctl
-if [ ! -x ${HOME}/bin/eksctl ]; then
-  echo "INFO: Installing eksctl"
-  curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-  mv /tmp/eksctl "${HOME}/bin/eksctl"
-fi
-
 # enable byobu
 byobu-enable
 

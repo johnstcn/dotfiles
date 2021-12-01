@@ -20,8 +20,6 @@ export GOPATH="${HOME}/go"
 export PATH="${GOPATH}/bin:${PATH}"
 export NAMESPACE="cian"
 
-source <(kubectl completion bash)
-source <(helm completion bash)
 source ~/.bash_aliases
 
 complete -F __start_kubectl k
