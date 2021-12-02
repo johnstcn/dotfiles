@@ -27,7 +27,7 @@ complete -F __start_kubectl k
 POWERLINEGO=$(command -v powerline-go)
 
 function _update_ps1() {
-    PS1="$($POWERLINEGO -newline -error $? -colorize-hostname -mode compatible -jobs $(jobs -p | wc -l))"
+    PS1="$($POWERLINEGO -newline -error $? -colorize-hostname -mode fancy -jobs $(jobs -p | wc -l))"
 }
 
 if [ "$TERM" != "linux" ] && [ -f "${POWERLINEGO}" ]; then
