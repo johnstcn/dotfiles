@@ -2,9 +2,6 @@
 
 set -euo pipefail
 
-echo "INFO: Updating /etc/apt/sources.list.d to europe-west1"
-sudo sed -i 's/us-central1/europe-west1/g' /etc/apt/sources.list
-
 echo "INFO: Installing software for Debian/Ubuntu"
 
 sudo apt-get update -qqy
