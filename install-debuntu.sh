@@ -27,7 +27,7 @@ fi
 
 if ! command -v powerline-go; then
   echo "INFO: Installing powerline-go"
-  wget -c 'https://github.com/justjanne/powerline-go/releases/download/v1.21.0/powerline-go-linux-amd64' -O ~/bin/powerline-go && chmod +x ~/bin/powerline-go
+  wget -c "https://github.com/justjanne/powerline-go/releases/download/v1.22.1/powerline-go-linux-$(arch)" -O ~/bin/powerline-go && chmod +x ~/bin/powerline-go
 fi
 
 # enable byobu
