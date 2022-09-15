@@ -10,6 +10,7 @@ sudo apt-get install -y software-properties-common
 sudo apt-get upgrade -qqy
 sudo apt-get install -qqy -o Dpkg::Options::="--force-overwrite" \
   less \
+  tree \
   bat \
   byobu \
   fd-find \
