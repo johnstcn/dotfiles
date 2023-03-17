@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+GOVERSION="go1.20.1"
 DOTFILES=(.bashrc .bash_profile .bash_aliases .vimrc .gitconfig .gitignore)
 SRC_DIR="${HOME}/src"
 declare -A REPO_MAP
@@ -40,6 +41,14 @@ sudo apt-get install -qqy -o Dpkg::Options::="--force-overwrite" \
   jq \
   shellcheck \
   vim
+
+if [ ! -e "/usr/local/go/bin/go" ]; then
+  echo "INFO: Installing Go ${GOVERSION}"
+  wget -c "https://go.dev/dl/${GOVERSION}.linux-amd64.tar.gz" -O "/tmp/${GOVERSION}.linux-amd64.tar.gz"
+  sudo rm -rf /usr/local/go && \
+  sudo tar -C /usr/local -xzf "/tmp/${GOVERSION}.linux-amd64.tar.gz" && \
+  rm -f "/tmp/${GOVERSION}.linux-amd64.tar.gz"
+fi
 
 mkdir -p "${HOME}/bin"
 

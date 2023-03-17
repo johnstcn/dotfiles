@@ -17,7 +17,7 @@ export SRC_DIR="${HOME}/src"
 export PATH="${PATH}:${HOME}/bin:${KREW_ROOT:-$HOME/.krew}/bin"
 
 export GOPATH="${HOME}/go"
-export PATH="${GOPATH}/bin:${PATH}"
+export PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 export NAMESPACE="cian"
 
 source ~/.bash_aliases
