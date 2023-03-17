@@ -17,7 +17,7 @@ sudo apt-get install -qqy -o Dpkg::Options::="--force-overwrite" \
   fzf \
   jq \
   shellcheck \
-  awscli
+  vim
 
 mkdir -p "${HOME}/bin"
 

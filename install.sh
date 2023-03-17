@@ -24,22 +24,37 @@ for DOTFILE in "${DOTFILES[@]}"; do
   cp -fv "${SRC}" "${DEST}"
 done
 
-# Ensure ~/bin exists
+echo "INFO: Installing software for Debian/Ubuntu"
+
+sudo apt-get update -qqy
+sudo apt-get install -y software-properties-common
+
+sudo apt-get upgrade -qqy
+sudo apt-get install -qqy -o Dpkg::Options::="--force-overwrite" \
+  less \
+  tree \
+  bat \
+  byobu \
+  fd-find \
+  fzf \
+  jq \
+  shellcheck \
+  vim
+
 mkdir -p "${HOME}/bin"
 
+# Alias batcat to bat the wrong way
+if [ ! -e "${HOME}/bin/bat" ]; then
+  ln -s $(which batcat) "${HOME}/bin/bat"
+fi
 
-DISTRO=$(lsb_release -i | awk -F ':' '{print $2}' | xargs)
+if ! command -v powerline-go; then
+  echo "INFO: Installing powerline-go"
+  wget -c "https://github.com/justjanne/powerline-go/releases/download/v1.22.1/powerline-go-linux-amd64" -O ~/bin/powerline-go && chmod +x ~/bin/powerline-go
+fi
 
+# enable byobu
+byobu-enable
 
-case "${DISTRO}" in
-	Arch)
-		./install-arch.sh
-		;;
-	Debian|Ubuntu)
-		./install-debuntu.sh
-		;;
-	*)
-		echo "Can't figure out which distro you're using."
-		exit 1
-	;;
-esac
+echo "INFO: Done!"
+cd "${OLDPWD}" || exit

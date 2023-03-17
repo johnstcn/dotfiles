@@ -1,12 +1,14 @@
 [user]
 	email = public@cianjohnston.ie
 	name = Cian Johnston
+	signingkey = 2601570B2F6DF10401757120D4B792960692F3CE
+
 [url "git@github.com:"]
 	insteadOf = https://github.com/
 
 [aliases]
 	add = "add -p" #ALWAYS
-	as = "! git rebase -i --autosquash master"
+	as = "! git rebase -i --autosquash main"
 	diff-file-last-commit = "!f() { \
             project_root_dir=$(git rev-parse --show-toplevel); \
             echo finding full file path of $1 in $project_root_dir; \
@@ -22,9 +24,14 @@
 	pu = "pull --all --rebase"
 	releasenotes = "! set -u; f() { git log  --no-merges --pretty=format:\"- %h %s\" $1; }; f"
 	subup = "submodule update --recursive"
-	sup = "submodule update --recursive"
 
 [rerere]
         enabled = true
 [pull]
 	ff = only
+
+[commit]
+	gpgsign = true
+
+[tag]
+	gpgsign = true
