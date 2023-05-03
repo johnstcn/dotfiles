@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-GOVERSION="go1.20.1"
+GOVERSION="go1.20.4"
 DOTFILES=(.bashrc .bash_profile .bash_aliases .vimrc .gitconfig .gitignore)
 SRC_DIR="${HOME}/src"
 declare -A REPO_MAP
