@@ -14,11 +14,8 @@ export FZF_CTRL_R_OPTS="--preview 'echo {}'"
 # export default kubernetes namespace
 export EDITOR=vim
 export SRC_DIR="${HOME}/src"
-export PATH="${PATH}:${HOME}/bin:${KREW_ROOT:-$HOME/.krew}/bin"
-
 export GOPATH="${HOME}/go"
-export PATH="${GOPATH}/bin:/usr/local/go/bin:${PATH}"
-export NAMESPACE="cian"
+export PATH="${PATH}:${HOME}/bin:${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 
 source ~/.bash_aliases
 

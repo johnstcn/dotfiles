@@ -1,7 +1,6 @@
 [user]
 	email = public@cianjohnston.ie
 	name = Cian Johnston
-	signingkey = 2601570B2F6DF10401757120D4B792960692F3CE
 
 [url "git@github.com:"]
 	insteadOf = https://github.com/
@@ -30,8 +29,3 @@
 [pull]
 	ff = only
 
-[commit]
-	gpgsign = true
-
-[tag]
-	gpgsign = true
