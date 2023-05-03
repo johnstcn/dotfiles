@@ -1,7 +1,6 @@
 [user]
 	email = public@cianjohnston.ie
 	name = Cian Johnston
-	signingkey = /home/cian/.ssh/id_ed25519.pub
 
 [url "git@github.com:"]
 	insteadOf = https://github.com/
@@ -29,8 +28,4 @@
         enabled = true
 [pull]
 	ff = only
-[commit]
-	gpgsign = true
-[commit "gpg"]
-	format = ssh
 
