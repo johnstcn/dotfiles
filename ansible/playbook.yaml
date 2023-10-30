@@ -1,0 +1,36 @@
+---
+- name: Install dotfiles
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: false
+
+  vars:
+    hostname: "{{ ansible_hostname | lower }}"
+
+  tasks:
+    - name: Ensure required packages are available for {{ hostname }}
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - git
+    - name: Load vars for {{ hostname }}
+      ansible.builtin.include_vars: "{{ hostname }}.yaml"
+    - name: Ensure src dir is present on {{ hostname }}
+      ansible.builtin.file:
+        path: "{{ dotfiles_src_dir }}"
+        state: directory
+        mode: '0755'
+    - name: Clone git repos for {{ hostname }}
+      ansible.builtin.git:
+        repo: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        version: "{{ item.version }}"
+        force: false
+      with_items: "{{ dotfiles_git_repos }}"
+    - name: Install required packages for {{ hostname }}
+      ansible.builtin.package:
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ dotfiles_packages }}"
