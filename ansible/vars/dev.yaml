@@ -1,0 +1,6 @@
+dotfiles_src_dir: ~/src
+dotfiles_git_repos:
+  - src: git@github.com:coder/coder
+    dest: ~/src/coder
+    version: main
+dotfiles_packages: [] # all present in image

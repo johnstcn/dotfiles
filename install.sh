@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -7,10 +6,22 @@ set -euo pipefail
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
+# Ensure python3 is available
+if ! command -v python3; then
+  echo "INFO: installing python3"
+  DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y python3 python3-virtualenv python3-apt
+fi
+
+# Ensure virtualenv  is available
+if ! command -v virtualenv; then
+  echo "INFO: installing virtualenv"
+  DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y python3-virtualenv
+fi
+
 # Create a virtualenv
 if [[ ! -d "${REPO_ROOT}/.venv" ]]; then
   echo "INFO: Creating virtualenv"
-  python3 -m venv "${REPO_ROOT}/.venv"
+  virtualenv "${REPO_ROOT}/.venv"
 fi
 
 # Activate the virtualenv
