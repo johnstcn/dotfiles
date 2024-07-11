@@ -6,16 +6,30 @@ set -euo pipefail
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
+
+install_package() {
+    if [[ -f "/etc/debian-release" ]]; then
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y "$@"
+    elif [[ -f "/etc/fedora-release" ]]; then
+        sudo dnf install -y "$@"
+    elif [[ -f "/etc/redhat-release" ]]; then
+        sudo yum install -y "$@"
+    else
+        echo "ERROR: Unsupported OS"
+        exit 1
+    fi
+}
+
 # Ensure python3 is available
 if ! command -v python3; then
   echo "INFO: installing python3"
-  DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y python3 python3-virtualenv python3-apt
+  install_package python3 python3-virtualenv python3-apt
 fi
 
 # Ensure virtualenv  is available
 if ! command -v virtualenv; then
   echo "INFO: installing virtualenv"
-  DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y python3-virtualenv
+  install_package python3-virtualenv
 fi
 
 # Create a virtualenv
@@ -46,4 +60,4 @@ fi
 
 # Run the playbook
 cd "${REPO_ROOT}/ansible"
-ansible-playbook playbook.yaml ${ANSIBLE_VERBOSE}
+ansible-playbook playbook.yaml --forks $(nproc) ${ANSIBLE_VERBOSE}
