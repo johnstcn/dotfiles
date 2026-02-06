@@ -12,7 +12,6 @@ vim.cmd([[
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 ]])
 Plug('junegunn/fzf.vim')
-Plug('neovim/nvim-lspconfig')
 Plug('leafgarland/typescript-vim')
 vim.call('plug#end')
 

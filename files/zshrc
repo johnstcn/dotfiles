@@ -34,3 +34,5 @@ if [ "$OS" = "darwin" ]; then
 fi
 
 alias zshconfig="${EDITOR} ~/.zshrc"
+autoload -Uz compinit && compinit
+
