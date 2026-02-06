@@ -271,6 +271,15 @@ download_binaries() {
     wait
 }
 
+install_nvim_plugins() {
+    if ! command -v nvim &>/dev/null; then
+        return
+    fi
+
+    log install_nvim_plugins "Performing initial plugin installation"
+    nvim --headless +PlugInstall +qall
+}
+
 # Main execution
 install_packages
 setup_coder_ssh
@@ -281,5 +290,7 @@ clone_repos &
 download_binaries &
 
 wait
+
+install_nvim_plugins
 
 log system "Done!"
