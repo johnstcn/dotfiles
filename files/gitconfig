@@ -2,6 +2,13 @@
 	email = public@cianjohnston.ie
 	name = Cian Johnston
 	signingkey = /home/cian/.ssh/id_ed25519.pub
+[core]
+	excludesfile = "~/.gitignore"
+[commit]
+	gpgsign = true
+[credential]
+	helper = cache
+	timeout = 86400
 [url "git@github.com:"]
 	insteadOf = https://github.com/
 
@@ -25,9 +32,18 @@
 	subup = "submodule update --recursive"
 	sup = "submodule update --recursive"
 
+[rebase]
+	autosquash = true
 [rerere]
         enabled = true
 [pull]
 	ff = only
 [gpg]
 	format = ssh
+[gpg "ssh"]
+	defaultKeyCommand = ssh-add -L
+	allowedSignersFile = ~/.ssh/allowed_signers
+[safe]
+	directory = "*"
+[tag]
+	gpgsign = true
