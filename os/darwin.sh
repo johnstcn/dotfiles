@@ -2,7 +2,7 @@ DOTFILES_PACKAGES=(
     bat
     byobu
     fd
-    flux
+    fluxcd/tap/flux
     fzf
     go
     kubectl
