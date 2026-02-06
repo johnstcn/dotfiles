@@ -1,15 +1,17 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2034
+NVIM_VERSION="v0.11.6"
 NVIM_ARCH=$(uname -m)
 if [[ "$NVIM_ARCH" == "aarch64" ]]; then
     NVIM_ARCH="arm64"
 fi
-NVIM_URL="https://github.com/neovim/neovim/releases/download/v0.11.6/nvim-linux-${NVIM_ARCH}.tar.gz"
+NVIM_URL="https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-${NVIM_ARCH}.tar.gz"
 
 if command -v nvim &>/dev/null; then
     SYSTEM_NVIM_VER=$(nvim --version | head -n1 | cut -d' ' -f2 | sed 's/^v//')
     if [[ "$SYSTEM_NVIM_VER" == 0.9.* ]]; then
-        log system "WARNING: Outdated system Neovim detected ($SYSTEM_NVIM_VER). Configuration requires v0.10+."
+        log system "WARNING: An outdated version of Neovim (v0.9.x) was detected in your system PATH."
+        log system "         The new version will be installed to $HOME/bin/nvim and should take precedence."
     fi
 fi
 
