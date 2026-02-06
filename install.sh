@@ -45,6 +45,29 @@ DOTFILES_FILES+=(
     "plug.vim|$HOME/.local/share/nvim/site/autoload/plug.vim"
 )
 
+setup_coder_ssh() {
+    if [[ -z "${CODER_AGENT_URL:-}" || -z "${CODER_AGENT_TOKEN:-}" ]]; then
+        return
+    fi
+
+    local privkey_file="$HOME/.ssh/id_ed25519"
+    if [[ -f "$privkey_file" ]]; then
+        echo "INFO: SSH key already exists at $privkey_file, skipping Coder fetch"
+        return
+    fi
+
+    echo "INFO: Fetching Git SSH key from Coder"
+    mkdir -p "$HOME/.ssh"
+    if ! curl -fsSL -H "Cookie: coder_session_token=${CODER_AGENT_TOKEN}" "${CODER_AGENT_URL}api/v2/workspaceagents/me/gitsshkey" | jq -r .private_key >"$privkey_file"; then
+        echo "ERROR: Failed to fetch Git SSH key from Coder"
+        return 1
+    fi
+
+    chmod 600 "$privkey_file"
+    ssh-keygen -y -f "$privkey_file" >"${privkey_file}.pub"
+    echo "INFO: Successfully fetched and configured Coder Git SSH key"
+}
+
 setup_git_signing() {
     echo "INFO: Setting up git signing"
     mkdir -p "$HOME/.ssh"
@@ -62,7 +85,7 @@ setup_git_signing() {
 }
 
 install_packages() {
-    local pkgs=("git" "curl" "${DOTFILES_PACKAGES[@]}")
+    local pkgs=("git" "curl" "jq" "${DOTFILES_PACKAGES[@]}")
     echo "INFO: Installing packages: ${pkgs[*]}"
     if [[ "$OS" == "darwin" ]]; then
         if ! command -v brew &>/dev/null; then
@@ -187,6 +210,7 @@ download_binaries() {
 
 # Main execution
 install_packages
+setup_coder_ssh
 setup_git_signing
 copy_files
 clone_repos
