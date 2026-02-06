@@ -19,4 +19,3 @@ alias kl="kubectl logs"
 alias kei="kubectl exec -it"
 alias gocover="gotestsum --debug --jsonfile=coverage.json --junitfile=coverage.xml --hide-summary=skipped --packages='./...' -- -covermode=set -coverprofile=test_go.coverage"
 alias dimg="docker images --format 'table {{.Repository}}:{{.Tag}}\t{{.ID}}\t{{.CreatedAt}}\t{{.Size}}'"
-alias __vsc_prompt_cmd_original=true

@@ -2,6 +2,12 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
+# GPG signing
+export GPG_TTY=$(tty)
+
+export TIMEZONE="Europe/Dublin"
+export TZ="Europe/Dublin"
+export EDITOR=nvim
 export FZF_DEFAULT_OPTS="--ansi"
 export FZF_DEFAULT_COMMAND="fdfind --type file --color=always --follow --hidden --exclude .git"
 export FZF_CTRL_T_COMMAND="${FZF_DEFAULT_COMMAND}"
@@ -9,15 +15,22 @@ export FZF_ALT_C_COMMAND="fdfind --type directory --color=always --follow --hidd
 export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -200'"
 export FZF_CTRL_R_OPTS="--preview 'echo {}'"
 
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+[ -f "${HOME}/.fzf.bash" ] && source "${HOME}/.fzf.bash"
 
-# export default kubernetes namespace
-export EDITOR=vim
+# use new auth plugin for gke
+export USE_GKE_GCLOUD_AUTH_PLUGIN=True
+
+# Most boxes I work on have about 16 cores.
+# See: https://github.com/golang/go/issues/33803
+export GOMAXPROCS=16
 export SRC_DIR="${HOME}/src"
 export GOPATH="${HOME}/go"
 export PATH="${PATH}:${HOME}/bin:${GOPATH}/bin:/usr/local/go/bin:${PATH}"
 
 source ~/.bash_aliases
+
+export HISTCONTROL=ignoredups:erasedups
+shopt -s histappend
 
 complete -F __start_kubectl k
 
