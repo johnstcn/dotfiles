@@ -1,9 +1,11 @@
+# shellcheck disable=SC1090,SC1091
 if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /etc/bash_completion
 fi
 
 # GPG signing
-export GPG_TTY=$(tty)
+GPG_TTY=$(tty)
+export GPG_TTY
 
 export TIMEZONE="Europe/Dublin"
 export TZ="Europe/Dublin"
@@ -37,7 +39,7 @@ complete -F __start_kubectl k
 POWERLINEGO=$(command -v powerline-go)
 
 function _update_ps1() {
-    PS1="$($POWERLINEGO -newline -error $? -colorize-hostname -mode patched -jobs $(jobs -p | wc -l))"
+    PS1="$($POWERLINEGO -newline -error $? -colorize-hostname -mode patched -jobs "$(jobs -p | wc -l)")"
 }
 
 if [ "$TERM" != "linux" ] && [ -f "${POWERLINEGO}" ]; then

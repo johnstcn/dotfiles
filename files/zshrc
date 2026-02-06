@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2296,SC2298,SC2139
 # If you come from bash you might have to change your $PATH.
 export PATH=/opt/homebrew/opt/coreutils/libexec/gnubin:$HOME/bin:${HOME}/go/bin:/opt/homebrew/bin:$PATH
 
