@@ -15,6 +15,22 @@ Plug('junegunn/fzf.vim')
 Plug('leafgarland/typescript-vim')
 vim.call('plug#end')
 
+-- Run PlugInstall if there are missing plugins
+vim.api.nvim_create_autocmd('VimEnter', {
+  callback = function()
+    local missing = false
+    for _, spec in pairs(vim.g.plugs) do
+      if vim.fn.isdirectory(spec.dir) == 0 then
+        missing = true
+        break
+      end
+    end
+    if missing then
+      vim.cmd('PlugInstall --sync | source $MYVIMRC')
+    end
+  end,
+})
+
 vim.cmd('silent! colorscheme seoul256')
 vim.cmd('silent! set background=dark')
 vim.cmd('silent! set cursorcolumn cursorline')
