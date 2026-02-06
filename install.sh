@@ -234,12 +234,15 @@ download_binaries() {
                 curl -sSL "$url" | tar -C "$tmpdir" -xz
 
                 if [[ "$url" == *nvim* ]]; then
-                    log download_binaries "    Detected Neovim tarball, installing to /opt"
-                    local nvim_dir
+                    local nvim_version nvim_install_dir nvim_dir
+                    nvim_version=$(echo "$url" | cut -d/ -f8)
+                    nvim_install_dir="$HOME/.nvim-$nvim_version"
+                    log download_binaries "    Detected Neovim tarball, installing to $nvim_install_dir"
                     nvim_dir=$(find "$tmpdir" -maxdepth 1 -type d -name "nvim-*" -print -quit)
                     if [[ -n "$nvim_dir" ]]; then
-                        sudo cp -r "$nvim_dir/"* /opt/
-                        sudo chmod +x /opt/bin/nvim
+                        mkdir -p "$nvim_install_dir"
+                        cp -r "$nvim_dir/"* "$nvim_install_dir/"
+                        $sudo_cmd ln -sf "$nvim_install_dir/bin/nvim" "$dest"
                     else
                         log download_binaries "Could not find nvim directory in tarball"
                         rm -rf "$tmpdir"
