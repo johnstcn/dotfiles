@@ -1,3 +1,5 @@
+# shellcheck shell=bash
+# shellcheck disable=SC2034
 DOTFILES_PACKAGES=(
     bat
     byobu
@@ -7,6 +9,7 @@ DOTFILES_PACKAGES=(
     less
     neovim
     shellcheck
+    shfmt
     tree
     vim
 )

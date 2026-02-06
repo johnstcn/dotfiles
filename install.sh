@@ -9,11 +9,10 @@ HOSTNAME=$(hostname -s | tr '[:upper:]' '[:lower:]')
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 case "$ARCH" in
-    x86_64) ARCH="amd64" ;;
-    aarch64|arm64) ARCH="arm64" ;;
+x86_64) ARCH="amd64" ;;
+aarch64 | arm64) ARCH="arm64" ;;
 esac
 echo "INFO: Detected OS: $OS, ARCH: $ARCH"
-
 
 # Default configuration (can be overridden by host config)
 DOTFILES_SRC_DIR="$HOME/src"
@@ -36,6 +35,7 @@ declare -a DOTFILES_FILES=(
 # Source OS config if it exists
 if [[ -f "${REPO_ROOT}/os/${OS}.sh" ]]; then
     echo "INFO: Loading configuration for OS: ${OS}"
+    # shellcheck source=/dev/null
     source "${REPO_ROOT}/os/${OS}.sh"
 fi
 
@@ -54,7 +54,7 @@ setup_git_signing() {
     if [[ -f "$pubkey_file" ]]; then
         local pubkey
         pubkey=$(cat "$pubkey_file")
-        echo "$email namespaces=\"git\" $pubkey" > "$HOME/.ssh/allowed_signers"
+        echo "$email namespaces=\"git\" $pubkey" >"$HOME/.ssh/allowed_signers"
         echo "INFO: Updated ~/.ssh/allowed_signers"
     else
         echo "WARNING: $pubkey_file not found, skipping signing setup"
