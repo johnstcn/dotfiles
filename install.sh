@@ -254,9 +254,12 @@ download_binaries() {
 # Main execution
 install_packages
 setup_coder_ssh
-setup_git_signing
-copy_files
-clone_repos
-download_binaries
+
+setup_git_signing &
+copy_files &
+clone_repos &
+download_binaries &
+
+wait
 
 echo "INFO: Done!"
