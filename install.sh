@@ -30,6 +30,7 @@ declare -a DOTFILES_FILES=(
     "bashrc|$HOME/.bashrc"
     "gitconfig|$HOME/.gitconfig"
     "vimrc|$HOME/.vimrc"
+    "zshrc|$HOME/.zshrc"
 )
 
 # Source OS config if it exists
@@ -112,7 +113,7 @@ clone_repos() {
         repo_src=$(echo "$item" | cut -d'|' -f1)
         repo_dest=$(echo "$item" | cut -d'|' -f2)
         repo_ver=$(echo "$item" | cut -d'|' -f3)
-        
+
         if [[ ! -d "$repo_dest" ]]; then
             echo "  Cloning $repo_src to $repo_dest (branch: $repo_ver)"
             git clone -b "$repo_ver" "$repo_src" "$repo_dest"
@@ -132,13 +133,13 @@ download_binaries() {
         local url dest
         url="${item%%|*}"
         dest="${item#*|}"
-        
+
         # Replace placeholders
         url="${url//\$\{OS\}/$OS}"
         url="${url//\$\{ARCH\}/$ARCH}"
-        
+
         echo "  Processing $url -> $dest"
-        
+
         local sudo_cmd=""
         if [[ "$dest" == /opt/* || "$dest" == /usr/local/bin/* ]]; then
             sudo_cmd="sudo"
@@ -150,7 +151,7 @@ download_binaries() {
             local tmpdir
             tmpdir=$(mktemp -d)
             curl -sSL "$url" | tar -C "$tmpdir" -xz
-            
+
             if [[ "$url" == *nvim* ]]; then
                 echo "    Detected Neovim tarball, installing to /opt"
                 local nvim_dir
