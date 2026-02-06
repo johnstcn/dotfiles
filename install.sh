@@ -241,7 +241,6 @@ download_binaries() {
                     nvim_dir=$(find "$tmpdir" -maxdepth 1 -type d -name "nvim-*" -print -quit)
                     if [[ -n "$nvim_dir" ]]; then
                         mkdir -p "$nvim_install_dir"
-                        rm -rf "${nvim_install_dir:?}"/*
                         cp -r "$nvim_dir/"* "$nvim_install_dir/"
                         ln -sf "$nvim_install_dir/bin/nvim" "$dest"
                     else
