@@ -50,6 +50,7 @@ copy_files() {
         src="${item%%|*}"
         dest="${item#*|}"
         echo "  $src -> $dest"
+        mkdir -p "$(dirname "$dest")"
         cp -v "${REPO_ROOT}/files/$src" "$dest"
     done
 }
@@ -74,7 +75,8 @@ clone_repos() {
             echo "  Cloning $repo_src to $repo_dest (branch: $repo_ver)"
             git clone -b "$repo_ver" "$repo_src" "$repo_dest"
         else
-            echo "  $repo_dest already exists, skipping clone"
+            echo "  Updating $repo_dest"
+            git -C "$repo_dest" pull
         fi
     done
 }
@@ -84,13 +86,31 @@ download_binaries() {
         return
     fi
     echo "INFO: Downloading binaries"
-    mkdir -p "$HOME/bin"
     for item in "${DOTFILES_BINARIES[@]}"; do
         local url dest
         url="${item%%|*}"
         dest="${item#*|}"
-        echo "  Downloading $url to $dest"
-        curl -sSL "$url" -o "$dest"
+        echo "  Processing $url -> $dest"
+        mkdir -p "$(dirname "$dest")"
+        if [[ "$url" == *.tar.gz ]]; then
+            local tmpdir
+            tmpdir=$(mktemp -d)
+            curl -sSL "$url" | tar -C "$tmpdir" -xz
+            local bin_name
+            bin_name=$(basename "$dest")
+            local src_bin
+            src_bin=$(find "$tmpdir" -type f -name "$bin_name" -print -quit)
+            if [[ -n "$src_bin" ]]; then
+                mv "$src_bin" "$dest"
+            else
+                echo "ERROR: Could not find binary '$bin_name' in tarball $url"
+                rm -rf "$tmpdir"
+                exit 1
+            fi
+            rm -rf "$tmpdir"
+        else
+            curl -sSL "$url" -o "$dest"
+        fi
         chmod +x "$dest"
     done
 }
