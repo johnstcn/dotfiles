@@ -18,7 +18,11 @@ echo "INFO: Detected OS: $OS, ARCH: $ARCH"
 # Default configuration (can be overridden by host config)
 DOTFILES_SRC_DIR="$HOME/src"
 declare -a DOTFILES_PACKAGES=()
-declare -a DOTFILES_GIT_REPOS=()
+declare -a DOTFILES_GIT_REPOS=(
+    "git@github.com:johnstcn/flux|$HOME/src/flux|main"
+    "git@github.com:johnstcn/cianjohnston.ie|$HOME/src/cianjohnston.ie|main"
+    "git@gitlab.com:johnstcn/cv.git|$HOME/src/cv|master"
+)
 declare -a DOTFILES_BINARIES=()
 declare -a DOTFILES_FILES=(
     "bash_aliases|$HOME/.bash_aliases"
@@ -28,13 +32,10 @@ declare -a DOTFILES_FILES=(
     "vimrc|$HOME/.vimrc"
 )
 
-# Source host config if it exists
-if [[ -f "${REPO_ROOT}/hosts/${HOSTNAME}.sh" ]]; then
-    echo "INFO: Loading configuration for host: ${HOSTNAME}"
-    # shellcheck disable=SC1090
-    source "${REPO_ROOT}/hosts/${HOSTNAME}.sh"
-else
-    echo "WARNING: No configuration found for host: ${HOSTNAME}"
+# Source OS config if it exists
+if [[ -f "${REPO_ROOT}/os/${OS}.sh" ]]; then
+    echo "INFO: Loading configuration for OS: ${OS}"
+    source "${REPO_ROOT}/os/${OS}.sh"
 fi
 
 # Ensure mandatory configuration files are included
@@ -60,11 +61,16 @@ setup_git_signing() {
 }
 
 install_packages() {
-    # Always ensure git and curl are present
     local pkgs=("git" "curl" "${DOTFILES_PACKAGES[@]}")
-    
     echo "INFO: Installing packages: ${pkgs[*]}"
-    if [[ -f "/etc/debian_version" ]]; then
+    if [[ "$OS" == "darwin" ]]; then
+        if ! command -v brew &>/dev/null; then
+            echo "INFO: Installing Homebrew"
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+        fi
+        brew install "${pkgs[@]}"
+    elif [[ -f "/etc/debian_version" ]]; then
         sudo apt-get update -qq
         DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y "${pkgs[@]}"
     elif [[ -f "/etc/fedora-release" ]]; then
