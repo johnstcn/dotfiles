@@ -163,20 +163,23 @@ clone_repos() {
 
     echo "INFO: Cloning git repositories"
     for item in "${DOTFILES_GIT_REPOS[@]}"; do
-        # Format: "src|dest|version"
-        local repo_src repo_dest repo_ver
-        repo_src=$(echo "$item" | cut -d'|' -f1)
-        repo_dest=$(echo "$item" | cut -d'|' -f2)
-        repo_ver=$(echo "$item" | cut -d'|' -f3)
+        (
+            # Format: "src|dest|version"
+            local repo_src repo_dest repo_ver
+            repo_src=$(echo "$item" | cut -d'|' -f1)
+            repo_dest=$(echo "$item" | cut -d'|' -f2)
+            repo_ver=$(echo "$item" | cut -d'|' -f3)
 
-        if [[ ! -d "$repo_dest" ]]; then
-            echo "  Cloning $repo_src to $repo_dest (branch: $repo_ver)"
-            git clone -b "$repo_ver" "$repo_src" "$repo_dest"
-        else
-            echo "  Updating $repo_dest"
-            git -C "$repo_dest" pull
-        fi
+            if [[ ! -d "$repo_dest" ]]; then
+                echo "  Cloning $repo_src to $repo_dest (branch: $repo_ver)"
+                git clone -b "$repo_ver" "$repo_src" "$repo_dest"
+            else
+                echo "  Updating $repo_dest"
+                git -C "$repo_dest" pull
+            fi
+        ) &
     done
+    wait
 }
 
 download_binaries() {
@@ -185,59 +188,67 @@ download_binaries() {
     fi
     echo "INFO: Downloading binaries"
     for item in "${DOTFILES_BINARIES[@]}"; do
-        local url dest
-        url="${item%%|*}"
-        dest="${item#*|}"
+        (
+            local url dest
+            url="${item%%|*}"
+            dest="${item#*|}"
 
-        # Replace placeholders
-        url="${url//\$\{OS\}/$OS}"
-        url="${url//\$\{ARCH\}/$ARCH}"
+            # Replace placeholders
+            url="${url//\$\{OS\}/$OS}"
+            url="${url//\$\{ARCH\}/$ARCH}"
 
-        echo "  Processing $url -> $dest"
-
-        local sudo_cmd=""
-        if [[ "$dest" == /opt/* || "$dest" == /usr/local/bin/* ]]; then
-            sudo_cmd="sudo"
-        fi
-
-        $sudo_cmd mkdir -p "$(dirname "$dest")"
-
-        if [[ "$url" == *.tar.gz ]]; then
-            local tmpdir
-            tmpdir=$(mktemp -d)
-            curl -sSL "$url" | tar -C "$tmpdir" -xz
-
-            if [[ "$url" == *nvim* ]]; then
-                echo "    Detected Neovim tarball, installing to /opt"
-                local nvim_dir
-                nvim_dir=$(find "$tmpdir" -maxdepth 1 -type d -name "nvim-*" -print -quit)
-                if [[ -n "$nvim_dir" ]]; then
-                    sudo cp -r "$nvim_dir/"* /opt/
-                    sudo chmod +x /opt/bin/nvim
-                else
-                    echo "ERROR: Could not find nvim directory in tarball"
-                    rm -rf "$tmpdir"
-                    exit 1
-                fi
-            else
-                local bin_name
-                bin_name=$(basename "$dest")
-                local src_bin
-                src_bin=$(find "$tmpdir" -type f -name "$bin_name" -print -quit)
-                if [[ -n "$src_bin" ]]; then
-                    $sudo_cmd mv "$src_bin" "$dest"
-                else
-                    echo "ERROR: Could not find binary '$bin_name' in tarball $url"
-                    rm -rf "$tmpdir"
-                    exit 1
-                fi
+            if [[ -f "$dest" ]]; then
+                echo "  $dest already exists, skipping"
+                exit 0
             fi
-            rm -rf "$tmpdir"
-        else
-            $sudo_cmd curl -sSL "$url" -o "$dest"
-        fi
-        $sudo_cmd chmod +x "$dest"
+
+            echo "  Processing $url -> $dest"
+
+            local sudo_cmd=""
+            if [[ "$dest" == /opt/* || "$dest" == /usr/local/bin/* ]]; then
+                sudo_cmd="sudo"
+            fi
+
+            $sudo_cmd mkdir -p "$(dirname "$dest")"
+
+            if [[ "$url" == *.tar.gz ]]; then
+                local tmpdir
+                tmpdir=$(mktemp -d)
+                curl -sSL "$url" | tar -C "$tmpdir" -xz
+
+                if [[ "$url" == *nvim* ]]; then
+                    echo "    Detected Neovim tarball, installing to /opt"
+                    local nvim_dir
+                    nvim_dir=$(find "$tmpdir" -maxdepth 1 -type d -name "nvim-*" -print -quit)
+                    if [[ -n "$nvim_dir" ]]; then
+                        sudo cp -r "$nvim_dir/"* /opt/
+                        sudo chmod +x /opt/bin/nvim
+                    else
+                        echo "ERROR: Could not find nvim directory in tarball"
+                        rm -rf "$tmpdir"
+                        exit 1
+                    fi
+                else
+                    local bin_name
+                    bin_name=$(basename "$dest")
+                    local src_bin
+                    src_bin=$(find "$tmpdir" -type f -name "$bin_name" -print -quit)
+                    if [[ -n "$src_bin" ]]; then
+                        $sudo_cmd mv "$src_bin" "$dest"
+                    else
+                        echo "ERROR: Could not find binary '$bin_name' in tarball $url"
+                        rm -rf "$tmpdir"
+                        exit 1
+                    fi
+                fi
+                rm -rf "$tmpdir"
+            else
+                $sudo_cmd curl -sSL "$url" -o "$dest"
+            fi
+            $sudo_cmd chmod +x "$dest"
+        ) &
     done
+    wait
 }
 
 # Main execution
