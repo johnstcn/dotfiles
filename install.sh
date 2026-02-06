@@ -12,7 +12,38 @@ case "$ARCH" in
 x86_64) ARCH="amd64" ;;
 aarch64 | arm64) ARCH="arm64" ;;
 esac
-echo "INFO: Detected OS: $OS, ARCH: $ARCH"
+declare -A STEP_NAMES=(
+    [install_packages]="Install Packages"
+    [setup_coder_ssh]="Setup Coder SSH"
+    [setup_git_signing]="Setup Git Signing"
+    [copy_files]="Copy Dotfiles"
+    [clone_repos]="Clone Repositories"
+    [download_binaries]="Download Binaries"
+    [system]="System"
+)
+
+STEPS=(
+    "install_packages"
+    "setup_coder_ssh"
+    "setup_git_signing"
+    "copy_files"
+    "clone_repos"
+    "download_binaries"
+)
+
+log() {
+    local step="$1"
+    shift
+    local name="${STEP_NAMES[$step]:-System}"
+    echo "[$name] $*"
+}
+
+echo "Planned steps:"
+for i in "${!STEPS[@]}"; do
+    echo "  $((i + 1)). ${STEP_NAMES[${STEPS[$i]}]}"
+done
+echo
+log system "Detected OS: $OS, ARCH: $ARCH"
 
 # Default configuration (can be overridden by host config)
 DOTFILES_SRC_DIR="$HOME/src"
@@ -34,7 +65,7 @@ declare -a DOTFILES_FILES=(
 
 # Source OS config if it exists
 if [[ -f "${REPO_ROOT}/os/${OS}.sh" ]]; then
-    echo "INFO: Loading configuration for OS: ${OS}"
+    log system "Loading configuration for OS: ${OS}"
     # shellcheck source=/dev/null
     source "${REPO_ROOT}/os/${OS}.sh"
 fi
@@ -52,24 +83,24 @@ setup_coder_ssh() {
 
     local privkey_file="$HOME/.ssh/id_ed25519"
     if [[ -f "$privkey_file" ]]; then
-        echo "INFO: SSH key already exists at $privkey_file, skipping Coder fetch"
+        log setup_coder_ssh "SSH key already exists at $privkey_file, skipping Coder fetch"
         return
     fi
 
-    echo "INFO: Fetching Git SSH key from Coder"
+    log setup_coder_ssh "Fetching Git SSH key from Coder"
     mkdir -p "$HOME/.ssh"
     if ! curl -fsSL -H "Cookie: coder_session_token=${CODER_AGENT_TOKEN}" "${CODER_AGENT_URL}api/v2/workspaceagents/me/gitsshkey" | jq -r .private_key >"$privkey_file"; then
-        echo "ERROR: Failed to fetch Git SSH key from Coder"
+        log setup_coder_ssh "Failed to fetch Git SSH key from Coder"
         return 1
     fi
 
     chmod 600 "$privkey_file"
     ssh-keygen -y -f "$privkey_file" >"${privkey_file}.pub"
-    echo "INFO: Successfully fetched and configured Coder Git SSH key"
+    log setup_coder_ssh "Successfully fetched and configured Coder Git SSH key"
 }
 
 setup_git_signing() {
-    echo "INFO: Setting up git signing"
+    log setup_git_signing "Setting up git signing"
     mkdir -p "$HOME/.ssh"
     local email
     email=$(git config --get user.email || echo "user@example.com")
@@ -78,9 +109,9 @@ setup_git_signing() {
         local pubkey
         pubkey=$(cat "$pubkey_file")
         echo "$email namespaces=\"git\" $pubkey" >"$HOME/.ssh/allowed_signers"
-        echo "INFO: Updated ~/.ssh/allowed_signers"
+        log setup_git_signing "Updated ~/.ssh/allowed_signers"
     else
-        echo "WARNING: $pubkey_file not found, skipping signing setup"
+        log setup_git_signing "$pubkey_file not found, skipping signing setup"
     fi
 }
 
@@ -110,14 +141,14 @@ install_packages() {
     done
 
     if [[ ${#missing_pkgs[@]} -eq 0 ]]; then
-        echo "INFO: All packages already installed"
+        log install_packages "All packages already installed"
         return
     fi
 
-    echo "INFO: Installing packages: ${missing_pkgs[*]}"
+    log install_packages "Installing packages: ${missing_pkgs[*]}"
     if [[ "$OS" == "darwin" ]]; then
         if ! command -v brew &>/dev/null; then
-            echo "INFO: Installing Homebrew"
+            log install_packages "Installing Homebrew"
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
@@ -130,7 +161,7 @@ install_packages() {
     elif [[ -f "/etc/redhat-release" ]]; then
         sudo yum install -y "${missing_pkgs[@]}"
     else
-        echo "WARNING: Unsupported OS, skipping package installation"
+        log install_packages "Unsupported OS, skipping package installation"
     fi
 }
 
@@ -138,30 +169,30 @@ copy_files() {
     if [[ ${#DOTFILES_FILES[@]} -eq 0 ]]; then
         return
     fi
-    echo "INFO: Copying dotfiles"
+    log copy_files "Copying dotfiles"
     for item in "${DOTFILES_FILES[@]}"; do
         local src dest
         src="${item%%|*}"
         dest="${item#*|}"
         if [[ -f "$dest" ]] && cmp -s "${REPO_ROOT}/files/$src" "$dest"; then
-            echo "  $src -> $dest (skipped, identical)"
+            log copy_files "  $src -> $dest (skipped, identical)"
             continue
         fi
-        echo "  $src -> $dest"
+        log copy_files "  $src -> $dest"
         mkdir -p "$(dirname "$dest")"
-        cp -v "${REPO_ROOT}/files/$src" "$dest"
+        cp "${REPO_ROOT}/files/$src" "$dest"
     done
 }
 
 clone_repos() {
-    echo "INFO: Ensuring source directory exists: $DOTFILES_SRC_DIR"
+    log clone_repos "Ensuring source directory exists: $DOTFILES_SRC_DIR"
     mkdir -p "$DOTFILES_SRC_DIR"
 
     if [[ ${#DOTFILES_GIT_REPOS[@]} -eq 0 ]]; then
         return
     fi
 
-    echo "INFO: Cloning git repositories"
+    log clone_repos "Cloning git repositories"
     for item in "${DOTFILES_GIT_REPOS[@]}"; do
         (
             # Format: "src|dest|version"
@@ -171,10 +202,10 @@ clone_repos() {
             repo_ver=$(echo "$item" | cut -d'|' -f3)
 
             if [[ ! -d "$repo_dest" ]]; then
-                echo "  Cloning $repo_src to $repo_dest (branch: $repo_ver)"
+                log clone_repos "  Cloning $repo_src to $repo_dest (branch: $repo_ver)"
                 git clone -b "$repo_ver" "$repo_src" "$repo_dest"
             else
-                echo "  Updating $repo_dest"
+                log clone_repos "  Updating $repo_dest"
                 git -C "$repo_dest" pull
             fi
         ) &
@@ -186,7 +217,7 @@ download_binaries() {
     if [[ ${#DOTFILES_BINARIES[@]} -eq 0 ]]; then
         return
     fi
-    echo "INFO: Downloading binaries"
+    log download_binaries "Downloading binaries"
     for item in "${DOTFILES_BINARIES[@]}"; do
         (
             local url dest
@@ -198,11 +229,11 @@ download_binaries() {
             url="${url//\$\{ARCH\}/$ARCH}"
 
             if [[ -f "$dest" ]]; then
-                echo "  $dest already exists, skipping"
+                log download_binaries "  $dest already exists, skipping"
                 exit 0
             fi
 
-            echo "  Processing $url -> $dest"
+            log download_binaries "  Processing $url -> $dest"
 
             local sudo_cmd=""
             if [[ "$dest" == /opt/* || "$dest" == /usr/local/bin/* ]]; then
@@ -217,14 +248,14 @@ download_binaries() {
                 curl -sSL "$url" | tar -C "$tmpdir" -xz
 
                 if [[ "$url" == *nvim* ]]; then
-                    echo "    Detected Neovim tarball, installing to /opt"
+                    log download_binaries "    Detected Neovim tarball, installing to /opt"
                     local nvim_dir
                     nvim_dir=$(find "$tmpdir" -maxdepth 1 -type d -name "nvim-*" -print -quit)
                     if [[ -n "$nvim_dir" ]]; then
                         sudo cp -r "$nvim_dir/"* /opt/
                         sudo chmod +x /opt/bin/nvim
                     else
-                        echo "ERROR: Could not find nvim directory in tarball"
+                        log download_binaries "Could not find nvim directory in tarball"
                         rm -rf "$tmpdir"
                         exit 1
                     fi
@@ -236,7 +267,7 @@ download_binaries() {
                     if [[ -n "$src_bin" ]]; then
                         $sudo_cmd mv "$src_bin" "$dest"
                     else
-                        echo "ERROR: Could not find binary '$bin_name' in tarball $url"
+                        log download_binaries "Could not find binary '$bin_name' in tarball $url"
                         rm -rf "$tmpdir"
                         exit 1
                     fi
@@ -262,4 +293,4 @@ download_binaries &
 
 wait
 
-echo "INFO: Done!"
+log system "Done!"
