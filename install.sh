@@ -50,6 +50,7 @@ fi
 DOTFILES_FILES+=(
     "config-nvim-init.lua|$HOME/.config/nvim/init.lua"
     "plug.vim|$HOME/.local/share/nvim/site/autoload/plug.vim"
+    "nvim-lspconfig|$HOME/.local/share/nvim/site/pack/vendor/start/nvim-lspconfig"
 )
 
 setup_coder_ssh() {
@@ -147,16 +148,25 @@ copy_files() {
     fi
     log copy_files "Copying dotfiles"
     for item in "${DOTFILES_FILES[@]}"; do
-        local src dest
+        local src dest full_src
         src="${item%%|*}"
         dest="${item#*|}"
-        if [[ -f "$dest" ]] && cmp -s "${REPO_ROOT}/files/$src" "$dest"; then
+        full_src="${REPO_ROOT}/files/$src"
+
+        if [[ -d "$full_src" ]]; then
+            log copy_files "  $src -> $dest (directory)"
+            mkdir -p "$dest"
+            cp -R "$full_src/." "$dest/"
+            continue
+        fi
+
+        if [[ -f "$dest" ]] && cmp -s "$full_src" "$dest"; then
             log copy_files "  $src -> $dest (skipped, identical)"
             continue
         fi
         log copy_files "  $src -> $dest"
         mkdir -p "$(dirname "$dest")"
-        cp "${REPO_ROOT}/files/$src" "$dest"
+        cp "$full_src" "$dest"
     done
 }
 
