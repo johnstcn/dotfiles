@@ -12,37 +12,13 @@ case "$ARCH" in
 x86_64) ARCH="amd64" ;;
 aarch64 | arm64) ARCH="arm64" ;;
 esac
-declare -A STEP_NAMES=(
-    [install_packages]="Install Packages"
-    [setup_coder_ssh]="Setup Coder SSH"
-    [setup_git_signing]="Setup Git Signing"
-    [copy_files]="Copy Dotfiles"
-    [clone_repos]="Clone Repositories"
-    [download_binaries]="Download Binaries"
-    [system]="System"
-)
-
-STEPS=(
-    "install_packages"
-    "setup_coder_ssh"
-    "setup_git_signing"
-    "copy_files"
-    "clone_repos"
-    "download_binaries"
-)
 
 log() {
     local step="$1"
     shift
-    local name="${STEP_NAMES[$step]:-System}"
-    echo "[$name] $*"
+    echo "[$step] $*"
 }
 
-echo "Planned steps:"
-for i in "${!STEPS[@]}"; do
-    echo "  $((i + 1)). ${STEP_NAMES[${STEPS[$i]}]}"
-done
-echo
 log system "Detected OS: $OS, ARCH: $ARCH"
 
 # Default configuration (can be overridden by host config)
