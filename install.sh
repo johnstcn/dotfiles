@@ -86,21 +86,49 @@ setup_git_signing() {
 
 install_packages() {
     local pkgs=("git" "curl" "jq" "${DOTFILES_PACKAGES[@]}")
-    echo "INFO: Installing packages: ${pkgs[*]}"
+    local missing_pkgs=()
+
+    for pkg in "${pkgs[@]}"; do
+        local installed=0
+        if [[ "$OS" == "darwin" ]]; then
+            if command -v brew &>/dev/null && brew list --formula "$pkg" &>/dev/null; then
+                installed=1
+            fi
+        elif [[ -f "/etc/debian_version" ]]; then
+            if dpkg -s "$pkg" &>/dev/null; then
+                installed=1
+            fi
+        elif [[ -f "/etc/fedora-release" ]] || [[ -f "/etc/redhat-release" ]]; then
+            if rpm -q "$pkg" &>/dev/null; then
+                installed=1
+            fi
+        fi
+
+        if [[ $installed -eq 0 ]]; then
+            missing_pkgs+=("$pkg")
+        fi
+    done
+
+    if [[ ${#missing_pkgs[@]} -eq 0 ]]; then
+        echo "INFO: All packages already installed"
+        return
+    fi
+
+    echo "INFO: Installing packages: ${missing_pkgs[*]}"
     if [[ "$OS" == "darwin" ]]; then
         if ! command -v brew &>/dev/null; then
             echo "INFO: Installing Homebrew"
             /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
             eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
-        brew install "${pkgs[@]}"
+        brew install "${missing_pkgs[@]}"
     elif [[ -f "/etc/debian_version" ]]; then
         sudo apt-get update -qq
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y "${pkgs[@]}"
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install --no-install-recommends -y "${missing_pkgs[@]}"
     elif [[ -f "/etc/fedora-release" ]]; then
-        sudo dnf install -y "${pkgs[@]}"
+        sudo dnf install -y "${missing_pkgs[@]}"
     elif [[ -f "/etc/redhat-release" ]]; then
-        sudo yum install -y "${pkgs[@]}"
+        sudo yum install -y "${missing_pkgs[@]}"
     else
         echo "WARNING: Unsupported OS, skipping package installation"
     fi
@@ -115,6 +143,10 @@ copy_files() {
         local src dest
         src="${item%%|*}"
         dest="${item#*|}"
+        if [[ -f "$dest" ]] && cmp -s "${REPO_ROOT}/files/$src" "$dest"; then
+            echo "  $src -> $dest (skipped, identical)"
+            continue
+        fi
         echo "  $src -> $dest"
         mkdir -p "$(dirname "$dest")"
         cp -v "${REPO_ROOT}/files/$src" "$dest"
