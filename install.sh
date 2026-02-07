@@ -91,6 +91,33 @@ setup_git_signing() {
         log setup_git_signing "$pubkey_file not found, skipping signing setup"
     fi
 }
+setup_ssh_known_hosts() {
+    if [[ ${#DOTFILES_GIT_REPOS[@]} -eq 0 ]]; then
+        return
+    fi
+
+    log setup_ssh_known_hosts "Ensuring SSH known_hosts are populated"
+    mkdir -p "$HOME/.ssh"
+    local known_hosts="$HOME/.ssh/known_hosts"
+    touch "$known_hosts"
+
+    # Extract unique hostnames from DOTFILES_GIT_REPOS (format: git@hostname:path)
+    local hosts
+    hosts=$(for item in "${DOTFILES_GIT_REPOS[@]}"; do
+        local url="${item%%|*}"
+        if [[ "$url" =~ @([^:]+): ]]; then
+            echo "${BASH_REMATCH[1]}"
+        fi
+    done | sort -u)
+
+    for host in $hosts; do
+        if ! ssh-keygen -F "$host" &>/dev/null; then
+            log setup_ssh_known_hosts "  Scanning $host"
+            ssh-keyscan -H "$host" >>"$known_hosts" 2>/dev/null
+        fi
+    done
+}
+
 
 install_packages() {
     local pkgs=("git" "curl" "jq" "${DOTFILES_PACKAGES[@]}")
@@ -283,6 +310,7 @@ install_nvim_plugins() {
 # Main execution
 install_packages
 setup_coder_ssh
+setup_ssh_known_hosts
 
 setup_git_signing &
 copy_files &
