@@ -118,7 +118,6 @@ setup_ssh_known_hosts() {
     done
 }
 
-
 install_packages() {
     local pkgs=("git" "curl" "jq" "${DOTFILES_PACKAGES[@]}")
     local missing_pkgs=()
