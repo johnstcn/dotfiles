@@ -12,24 +12,10 @@ vim.cmd([[
   Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 ]])
 Plug('junegunn/fzf.vim')
+Plug('neovim/nvim-lspconfig')
 Plug('leafgarland/typescript-vim')
+Plug('brianaung/compl.nvim')
 vim.call('plug#end')
-
--- Run PlugInstall if there are missing plugins
-vim.api.nvim_create_autocmd('VimEnter', {
-  callback = function()
-    local missing = false
-    for _, spec in pairs(vim.g.plugs) do
-      if vim.fn.isdirectory(spec.dir) == 0 then
-        missing = true
-        break
-      end
-    end
-    if missing then
-      vim.cmd('PlugInstall --sync | source $MYVIMRC')
-    end
-  end,
-})
 
 vim.cmd('silent! colorscheme seoul256')
 vim.cmd('silent! set background=dark')
@@ -46,6 +32,9 @@ vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { silent = true })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { silent = true })
 -- Exit terminal mode with ESC
 vim.api.nvim_set_keymap('t', '<ESC><ESC>', '<C-\\><C-n>', {noremap = true, silent = true })
+-- Recommendations from https://github.com/brianaung/compl.nvim
+vim.opt.completeopt = { "menuone", "noselect", "noinsert" }
+vim.opt.shortmess:append "c"
 
 local function lsp_format(bufnr)
   if vim.lsp.buf.format then
@@ -74,4 +63,67 @@ end
 local lspconfig = require('lspconfig')
 lspconfig.gopls.setup({
   on_attach = on_attach,
+  settings = {
+    gopls = {
+      gofumpt = true,
+    },
+  },
+})
+
+-- Format Go files on save with gofumpt
+vim.api.nvim_create_autocmd('BufWritePre', {
+  pattern = '*.go',
+  callback = function()
+    lsp_format(vim.api.nvim_get_current_buf())
+  end,
+})
+
+-- Go test helpers
+local function go_test_at_cursor()
+  -- Find the test function name at cursor
+  local line = vim.fn.line('.')
+  local lines = vim.api.nvim_buf_get_lines(0, 0, line, false)
+
+  local test_name = nil
+  for i = #lines, 1, -1 do
+    local match = string.match(lines[i], '^func%s+(Test%w+)')
+    if match then
+      test_name = match
+      break
+    end
+  end
+
+  if test_name then
+    local dir = vim.fn.expand('%:p:h')
+    vim.cmd('botright split | terminal cd ' .. vim.fn.shellescape(dir) .. ' && go test -v -run ^' .. test_name .. '$')
+  else
+    vim.notify('No test function found at cursor', vim.log.levels.WARN)
+  end
+end
+
+local function go_test_file()
+  local dir = vim.fn.expand('%:p:h')
+  local file = vim.fn.expand('%:t:r') -- Get filename without extension
+  vim.cmd('botright split | terminal cd ' .. vim.fn.shellescape(dir) .. ' && go test -v -run ' .. file)
+end
+
+local function go_test_package()
+  local dir = vim.fn.expand('%:p:h')
+  vim.cmd('botright split | terminal cd ' .. vim.fn.shellescape(dir) .. ' && go test -v ./...')
+end
+
+-- Go test commands
+vim.api.nvim_create_user_command('GoTestAtCursor', go_test_at_cursor, {})
+vim.api.nvim_create_user_command('GoTestFile', go_test_file, {})
+vim.api.nvim_create_user_command('GoTestPackage', go_test_package, {})
+
+-- Go test keybindings (only in Go files)
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'go',
+  callback = function()
+    local opts = { silent = true, buffer = true }
+    vim.keymap.set('n', '<leader>tc', go_test_at_cursor, opts)
+    vim.keymap.set('n', '<leader>tf', go_test_file, opts)
+    vim.keymap.set('n', '<leader>tp', go_test_package, opts)
+  end,
 })

@@ -31,12 +31,13 @@ declare -a DOTFILES_GIT_REPOS=(
 )
 declare -a DOTFILES_BINARIES=()
 declare -a DOTFILES_FILES=(
-    "bash_aliases|$HOME/.bash_aliases"
-    "bash_profile|$HOME/.bash_profile"
-    "bashrc|$HOME/.bashrc"
-    "gitconfig|$HOME/.gitconfig"
-    "vimrc|$HOME/.vimrc"
-    "zshrc|$HOME/.zshrc"
+    "bash_aliases|${HOME}/.bash_aliases"
+    "bash_profile|${HOME}/.bash_profile"
+    "bashrc|${HOME}/.bashrc"
+    "gitconfig|${HOME}/.gitconfig"
+    "tmux.conf|${HOME}/.tmux.conf"
+    "vimrc|${HOME}/.vimrc"
+    "zshrc|${HOME}/.zshrc"
 )
 
 # Source OS config if it exists

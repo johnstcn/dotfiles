@@ -21,13 +21,13 @@ fi
 
 DOTFILES_PACKAGES=(
     bat
-    byobu
     fd-find
     fzf
     jq
     less
     shellcheck
     shfmt
+    tmux
     tree
     vim
 )

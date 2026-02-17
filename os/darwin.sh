@@ -2,7 +2,6 @@
 # shellcheck disable=SC2034
 DOTFILES_PACKAGES=(
     bat
-    byobu
     fd
     fluxcd/tap/flux
     fzf
@@ -15,6 +14,7 @@ DOTFILES_PACKAGES=(
     powerline-go
     shellcheck
     shfmt
+    tmux
     tree
     vim
 )
