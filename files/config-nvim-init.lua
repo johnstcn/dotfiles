@@ -60,8 +60,7 @@ local function on_attach(_, bufnr)
   end, opts)
 end
 
-local lspconfig = require('lspconfig')
-lspconfig.gopls.setup({
+vim.lsp.config('gopls', {
   on_attach = on_attach,
   settings = {
     gopls = {
